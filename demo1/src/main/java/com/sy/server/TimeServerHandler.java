@@ -1,4 +1,4 @@
-package com.sy;
+package com.sy.server;
 
 
 
