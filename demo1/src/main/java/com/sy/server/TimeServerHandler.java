@@ -17,22 +17,24 @@ import java.util.Date;
  */
 public class TimeServerHandler extends SimpleChannelInboundHandler {
 
+    private int counter;
+
+
     @Override
     public void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
         //转为Netty的ByteBuf对象。比java自带的功能更强大
-        ByteBuf buf  =(ByteBuf)msg;
+        String body  = (String)msg;
+        System.out.println("The time server receive order : "+ body  + " the counter is "+ ++counter);
         /**
          * buf.readableBytes() 获取可读的字节数
          * 随后根据可读的字数创建byte数组。
          * 在通过方法将缓冲区的字节数组复制到新的数组。
          */
-        byte[] req = new byte[buf.readableBytes()];
-        buf.readBytes(req);
-        String body = new String(req, "UTF-8");
-        System.out.println("打印值为："+body);
         String currentTime =  "QUERY".equalsIgnoreCase(body)?new Date(System.currentTimeMillis()).toString():"BAD";
+        //获取操作系统对应的换行符
+        currentTime = currentTime + System.getProperty("line.separator");
         ByteBuf resp = Unpooled.copiedBuffer(currentTime.getBytes());
-        channelHandlerContext.write(resp);
+        channelHandlerContext.writeAndFlush(resp);
     }
 
     /**
@@ -53,8 +55,8 @@ public class TimeServerHandler extends SimpleChannelInboundHandler {
      * @param ctx
      * @throws Exception
      */
-    @Override
+  /*  @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         ctx.flush();
-    }
+    }*/
 }

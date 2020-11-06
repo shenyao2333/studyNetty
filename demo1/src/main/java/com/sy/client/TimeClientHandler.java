@@ -17,8 +17,12 @@ public class TimeClientHandler extends SimpleChannelInboundHandler {
 
     private ByteBuf firstMessage;
 
+    private byte[] req;
+
+    private int counter;
+
     public TimeClientHandler(){
-        byte[] req = "QUERY".getBytes();
+        req = ("QUERY"+System.getProperty("line.separator")).getBytes();
         firstMessage= Unpooled.buffer(req.length);
         firstMessage.writeBytes(req);
     }
@@ -32,11 +36,9 @@ public class TimeClientHandler extends SimpleChannelInboundHandler {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
-        ByteBuf buf = (ByteBuf)msg;
-        byte[] req = new byte[buf.readableBytes()];
-        buf.readBytes(req);
-        String body = new String(req, "UTF-8");
-        System.out.println("NOW is: "+ body);
+
+        String buf = (String)msg;
+        System.out.println("NOW is: "+ buf  + "  the count is:" + ++counter);
 
     }
 
@@ -49,7 +51,13 @@ public class TimeClientHandler extends SimpleChannelInboundHandler {
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        ctx.writeAndFlush(firstMessage);
+        ByteBuf message = null;
+        for (int i = 0; i < 100; i++) {
+            message = Unpooled.buffer(req.length);
+            message.writeBytes(req);
+            ctx.writeAndFlush(message);
+        }
+
     }
 
     /**
@@ -60,6 +68,7 @@ public class TimeClientHandler extends SimpleChannelInboundHandler {
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        System.out.println(cause.getLocalizedMessage());
         System.out.println("错误："+cause.getMessage());
         ctx.close();
     }
